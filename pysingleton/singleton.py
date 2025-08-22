@@ -1,18 +1,18 @@
+from weakref import WeakKeyDictionary
+from typing import Type, Any
 from threading import Lock
-from typing import Dict, Type, Any
 
 
 class SingletonMeta(type):
-    __instances: Dict[Type[Any], Any] = {}
-    
-    __lock: Lock = Lock()
+    _instances  = WeakKeyDictionary()
+    _lock: Lock = Lock()
     
     def __call__[T](cls: Type[T], *args: Any, **kwargs: Any) -> T:
-        with SingletonMeta.__lock:
-            if cls not in SingletonMeta.__instances:
-                instance = super().__call__(*args, **kwargs)
-                SingletonMeta.__instances[cls] = instance
-        return SingletonMeta.__instances[cls]
+        if cls not in SingletonMeta._instances:
+            with SingletonMeta._lock:
+                if cls not in SingletonMeta._instances:
+                    SingletonMeta._instances[cls] = super().__call__(*args, **kwargs)
+        return SingletonMeta._instances[cls]
     
     
 class Singleton(metaclass=SingletonMeta):
